@@ -27,14 +27,14 @@ class TestSuite extends munit.FunSuite {
   }
 
   test("problem 2-2") {
-    assertEquals(nthPrime(1, 2), (1, 1))
-    assertEquals(nthPrime(2, 5), (1, 1))
-    assertEquals(nthPrime(10, 6), (3, 2))
-    assertEquals(nthPrime(20, 20), (3, 0))
-    assertEquals(nthPrime(1000, 2000), (5, 294))
-    assertEquals(nthPrime(1000000, 100000), (250, 9883))
+    assertEquals(nthPrime(1, 2), (1L, 1L))
+    assertEquals(nthPrime(2, 5), (1L, 1L))
+    assertEquals(nthPrime(10, 6), (3L, 2L))
+    assertEquals(nthPrime(20, 20), (3L, 0L))
+    assertEquals(nthPrime(1000, 2000), (5L, 294L))
+    assertEquals(nthPrime(1000000, 100000), (163L, 46290L))
   }
-
+  
   test("problem 3") {
     assertEquals(baf(_ + _, 5, 6), 45L)
     assertEquals(baf(_ + _, 8, 2), 27L)

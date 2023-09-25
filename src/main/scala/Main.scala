@@ -80,7 +80,7 @@ object Assignment1:
     *
     * We guarantee that either c or d is non-zero.
     */
-  def isDivisible(a: Int, b: Int, c: Int, d: Int): Boolean = ???
+  def isDivisible(a: Long, b: Long, c: Long, d: Long): Boolean = ???
 
   /** Problem 2-2.
     *
@@ -102,7 +102,7 @@ object Assignment1:
     *
     * Hint) https://mathworld.wolfram.com/GaussianPrime.html
     */
-  def nthPrime(n: Int, r: Int): (Int, Int) = ???
+  def nthPrime(n: Long, r: Long): (Long, Long) = ???
 
   /** Problem 3: Implement Branching Ackermann Function
     *
