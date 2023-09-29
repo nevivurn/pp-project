@@ -116,31 +116,30 @@ object Assignment1:
   def nthPrime(n: Long, r: Long): (Long, Long) =
     def isPrime(p: Long): Boolean =
       @tailrec
-      def isPrimeUntil(n: Long): Boolean =
-        if (n*n > p)
+      def isPrimeTest(t: Long, max: Long): Boolean =
+        if (t > max)
           true
-        else if (p%n == 0)
+        else if (((p%t) == 0) || ((p%(t+2)) == 0))
           false
         else
-          isPrimeUntil(n+2)
-      if (p <= 1)
-        false
-      else if (p <= 3)
-        true
-      else if (p % 2 == 0)
+          isPrimeTest(t+6, max)
+
+      if (p <= 3)
+        p > 1
+      else if ((p&1) == 0 || p%3 == 0)
         false
       else
-        isPrimeUntil(3)
+        isPrimeTest(5, Math.sqrt(p.toDouble).toLong)
 
     def isPrimeG(a: Long, b: Long): Boolean =
       if (a == 0 && b == 0)
         false
       else if (a == 0)
-        isPrimeG(b, 0)
+        b%4 == 3 && isPrime(b)
       else if (b == 0)
-        isPrime(a) && a%4 == 3
+        a%4 == 3 && isPrime(a)
       else
-        isPrime(a*a + b*b)
+        (a*a + b*b)%4 != 3 && isPrime(a*a + b*b)
 
     @tailrec
     def find(c: Long, a: Long, b: Long): (Long, Long) =
