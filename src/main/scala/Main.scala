@@ -1,4 +1,4 @@
-package pp202302.assign1 
+package pp202302.assign1
 
 import scala.annotation.tailrec
 import scala.util.control.TailCalls._
@@ -47,7 +47,16 @@ object Assignment1:
     *       prop(i_1 + .. + i_j) = true
     *   - If there is no such value, return 0.
     */
-  def sumProp(prop: Long => Boolean, n: Long): Long = ???
+  def sumProp(prop: Long => Boolean, n: Long): Long =
+    @tailrec
+    def sumPropLow(sum: Long, m: Long): Long =
+      if (m > n)
+        sum
+      else if (prop(sum + m))
+        sumPropLow(sum+m, m+1)
+      else
+        sumPropLow(sum, m+1)
+    sumPropLow(0, 1)
 
   /** Problem 2: Finding Gaussian Primes
     *
@@ -80,7 +89,9 @@ object Assignment1:
     *
     * We guarantee that either c or d is non-zero.
     */
-  def isDivisible(a: Long, b: Long, c: Long, d: Long): Boolean = ???
+  def isDivisible(a: Long, b: Long, c: Long, d: Long): Boolean =
+    val bnorm = c*c + d*d
+    (a*c + b*d) % bnorm == 0 && (b*c - a*d) % bnorm == 0
 
   /** Problem 2-2.
     *
@@ -102,7 +113,49 @@ object Assignment1:
     *
     * Hint) https://mathworld.wolfram.com/GaussianPrime.html
     */
-  def nthPrime(n: Long, r: Long): (Long, Long) = ???
+  def nthPrime(n: Long, r: Long): (Long, Long) =
+    def isPrime(p: Long): Boolean =
+      @tailrec
+      def isPrimeUntil(n: Long): Boolean =
+        if (n*n > p)
+          true
+        else if (p%n == 0)
+          false
+        else
+          isPrimeUntil(n+2)
+      if (p <= 1)
+        false
+      else if (p <= 3)
+        true
+      else if (p % 2 == 0)
+        false
+      else
+        isPrimeUntil(3)
+
+    def isPrimeG(a: Long, b: Long): Boolean =
+      if (a == 0 && b == 0)
+        false
+      else if (a == 0)
+        isPrimeG(b, 0)
+      else if (b == 0)
+        isPrime(a) && a%4 == 3
+      else
+        isPrime(a*a + b*b)
+
+    @tailrec
+    def find(c: Long, a: Long, b: Long): (Long, Long) =
+      if (b > r)
+        find(c, a+1, 0)
+      else if (a > r) // should never happen
+        (0, 0)
+      else if (isPrimeG(a, b))
+        if (c == n)
+          (a, b)
+        else
+          find(c+1, a, b+1)
+      else
+          find(c, a, b+1)
+    find(1, 0, 0)
 
   /** Problem 3: Implement Branching Ackermann Function
     *
@@ -130,4 +183,14 @@ object Assignment1:
     *     functions from scala.util.control.TailCalls._ (See
     *     https://stackoverflow.com/questions/16539488/why-scala-doesnt-make-tail-call-optimization)
     */
-  def baf(p: (Long, Long) => Long, a: Long, b: Long): Long = ???
+  def baf(p: (Long, Long) => Long, a: Long, b: Long): Long =
+    def bafc(p: (Long, Long) => Long, a: Long, b: Long, cont: Long => TailRec[Long]): TailRec[Long] =
+      if (a <= 0 || b <= 0)
+        cont(p(a, b))
+      else if (((a+b) & (a+b-1)) == 0)
+        bafc(p, a-1, b, v1 => tailcall(bafc(p, a, b-1, v2 => tailcall(cont(p(v1, v2))))))
+      else if (p(a, b) % 2 == 0)
+        bafc(p, a, b-1, v => tailcall(cont(p(a, v))))
+      else
+        bafc(p, a-1, b, v => tailcall(cont(p(v, b))))
+    bafc(p, a, b, done(_)).result
