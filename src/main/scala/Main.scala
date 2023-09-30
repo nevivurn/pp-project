@@ -97,7 +97,7 @@ object Assignment1:
     *
     * Note)
     *   - 0, +-1, +-i are not a gaussian prime
-    *   - 1 <= n <= 10^6, 1 <= r <= 10^5
+    *   - 1 <= n <= 10^5, 1 <= r <= 10^4
     *   - We guarantee that the n-th prime is always in the sorted list.
     *
     * Hint) https://mathworld.wolfram.com/GaussianPrime.html
