@@ -47,7 +47,7 @@ git push
 
 ## Due date
 
-- 2023/10/3 23:59:59 KST
+- 2023/10/31 23:59:59 KST
 
 ## Errata
 
