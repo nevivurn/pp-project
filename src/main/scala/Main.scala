@@ -138,66 +138,70 @@ object Assignment2:
     * returned by internal function of `pf`. Otherwise, return `INone`.
     */
   def mapPeg[V](pf: PEGFunc[V], s: String): IOption[V] =
-    def toPeg(pf: PEGFunc[_]): PEG =
-      pf match
-        case FStr(s, _) => Str(s)
-        case FCat(pf1, pf2, _) => Cat(toPeg(pf1), toPeg(pf2))
-        case FOrdChoice(pf1, pf2, _) => OrdChoice(toPeg(pf1), toPeg(pf2))
-        case FNoneOrMany(pf, _) => NoneOrMany(toPeg(pf))
-        case FOneOrMany(pf, _) => OneOrMany(toPeg(pf))
-        case FOptional(pf, _) => Optional(toPeg(pf))
-        case FExistP(pf) => ExistP(toPeg(pf))
-        case FNotP(pf) => NotP(toPeg(pf))
-    val p = toPeg(pf)
+    def mapp[V](pf: PEGFunc[V], s: String): IOption[(V, String)] =
+      pf match {
+        case FStr(sm, f) if s.startsWith(sm) =>
+          ISome((f(sm), s.stripPrefix(sm)))
+        case FStr(_, _) => INone
+        case FCat(p1, p2, f) =>
+          mapp(p1, s) match {
+            case ISome((v1, srem)) =>
+              mapp(p2, srem) match {
+                case ISome((v2, srest)) => ISome(f(v1, v2), srest)
+                case INone => INone
+              }
+            case INone => INone
+          }
+        case FOrdChoice(p1, p2, f) =>
+          mapp(p1, s) match {
+            case ISome((v, srem)) => ISome(f(ILeft(v)), srem)
+            case INone =>
+              mapp(p2, s) match {
+                case ISome((v, srem)) => ISome(f(IRight(v)), srem)
+                case INone => INone
+              }
+          }
+        case FNoneOrMany(p1, f) =>
+          mapp(p1, s) match {
+            case ISome((v, srem)) =>
+              mapp(FNoneOrMany(p1, v => v), srem) match {
+                case ISome((vrem, srest)) =>
+                  ISome(f(ICons(v, vrem)), srest)
+                case INone => throw new Exception // never happens
+              }
+            case INone => ISome(f(INil), s)
+          }
+        case FOneOrMany(p1, f) =>
+          mapp(p1, s) match {
+            case ISome((v, srem)) =>
+              mapp(FNoneOrMany(p1, v => v), srem) match {
+                case ISome((vrem, srest)) =>
+                  ISome(f(ICons(v, vrem)), srest)
+                case INone => throw new Exception // never happens
+              }
+            case INone => INone
+          }
+        case FOptional(p1, f) =>
+          mapp(p1, s) match {
+            case ISome(v, srem) => ISome((f(ISome(v)), srem))
+            case INone => ISome((f(INone), s))
+          }
+        case FExistP(p1) =>
+          mapp(p1, s) match {
+            case ISome(v, _) => ISome(((), s))
+            case INone => INone
+          }
+        case FNotP(p1) =>
+          mapp(p1, s) match {
+            case ISome(v, _) => INone
+            case INone => ISome(((), s))
+          }
+      }
 
-    def get[V](o: IOption[V]) =
-      o match
-        case ISome(v) => v
-        case INone => throw new Exception
-
-    if !matchPeg(p, s)
-      then INone
-    else
-
-    pf match
-      case FStr(_, f) => ISome(f(s))
-      case FCat(pf1, pf2, f) =>
-        val p1 = toPeg(pf1)
-        val p2 = toPeg(pf2)
-        val s2 = get(consumePeg(p1, s))
-        val s1 = s.stripSuffix(s2)
-        ISome(f(get(mapPeg(pf1, s1)), get(mapPeg(pf2, s2))))
-      case FOrdChoice(pf1, pf2, f) =>
-        if matchPeg(toPeg(pf1), s)
-          then ISome(f(ILeft(get(mapPeg(pf1, s)))))
-          else ISome(f(IRight(get(mapPeg(pf2, s)))))
-      case FNoneOrMany(pf1, f) =>
-        val p1 = toPeg(pf1)
-        consumePeg(p1, s) match {
-          case ISome(srem) =>
-            val s1 = s.stripSuffix(srem)
-            val a1 = get(mapPeg(pf1, s1))
-            val arem = get(mapPeg(FNoneOrMany(pf1, a => a), srem))
-            ISome(f(ICons(a1, arem)))
-          case INone => ISome(f(INil))
-        }
-      case FOneOrMany(pf1, f) =>
-        val p1 = toPeg(pf1)
-        val srem = get(consumePeg(p1, s))
-        val s1 = s.stripSuffix(srem)
-        val a1 = get(mapPeg(pf1, s1))
-        val arem = get(mapPeg(FNoneOrMany(pf1, a => a), srem))
-        ISome(f(ICons(a1, arem)))
-      case FOptional(pf1, f) =>
-        ISome(f(mapPeg(pf1, s)))
-      case FExistP(pf1) =>
-        if matchPeg(toPeg(pf1), s)
-          then ISome(())
-          else INone
-      case FNotP(pf1) =>
-        if !matchPeg(toPeg(pf1), s)
-          then ISome(())
-          else INone
+    mapp(pf, s) match {
+      case ISome(v, s) if s.isEmpty() => ISome(v)
+      case _ => INone
+    }
 
   /** Problem 2-4: Arithmetic PEG (15 points)
     *
@@ -237,14 +241,14 @@ object Assignment2:
     val number = FOneOrMany(
       digit,
       nl => {
-        def cons(nl: ICons[Num]): Long =
-          nl.tl match {
-            case ICons(hd, tl) => nl.hd.n *10 + cons(ICons(hd, tl))
-            case INil => nl.hd.n
+        def cons(nl: IList[Num], acc: Long): Long =
+          nl match {
+            case ICons(hd, tl) => cons(tl, acc*10 + hd.n)
+            case INil => acc
           }
         nl match {
-          case ICons(hd, tl) => Num(cons(ICons(hd, tl)))
-          case INil => throw new Exception // should never happen!
+          case ICons(hd, tl) => Num(cons(ICons(hd, tl), 0))
+          case INil => throw new Exception("empty integer?!") // should never happen!
         }
       })
 
