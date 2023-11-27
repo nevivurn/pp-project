@@ -24,8 +24,8 @@ object TutorialApp {
     reload()
   }
 
-  @JSExportTopLevel("clear")
-  def clear(): Unit = {
+  @JSExportTopLevel("clearAll")
+  def clearAll(): Unit = {
     automata = automata.clear
     reload()
   }
