@@ -6,7 +6,8 @@ import IOType._
 
 given Reader[IOType] with
   extension (r: IOType)
-    def readChar(): Char = ???
+    // Hint: Use scala.Console.in.read().toChar
+    def readChar(): Option[Char] = ???
 
 given Writer[IOType] with
   extension (w: IOType)

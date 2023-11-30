@@ -20,13 +20,13 @@ given sx: Show[Arg] =
   case ANName(x) => s"(by-name $x)"
 
 given Show[Bind] =
-  case BDef(f, params, body) =>
-    s"(def $f (${params.show}) ${body.show})"
   case BVal(x, e)  => s"(val $x ${e.show})"
   case BLVal(x, e) => s"(lazy-val $x ${e.show})"
+  case BDef(f, params, body) =>
+    s"(def $f (${params.show}) ${body.show})"
   case BDefIO(f, params, actions, returns) => {
     val actionsStr = actions.map(_.show).mkString(" ")
-    s"(def-io $f (${params.show}) $actionsStr ${returns.show})"
+    s"(defIO $f (${params.show}) $actionsStr ${returns.show})"
   }
 
 given Show[Expr] =
@@ -80,6 +80,12 @@ given Show[Val] =
   case VNil                       => "nil"
   case VCons(head, tail)          => s"(${head.show} . ${tail.show})"
   case VFunc(fn, params, body, _) => s"(def $fn (${params.show}) ${body.show})"
+  case VIOAction(actionName, params, actions, returns, env) => {
+    val actionsStr = actions.map(_.show).mkString(" ")
+    s"(defIO $actionName (${params.show}) $actionsStr ${returns.show})"
+  }
+  case VIOThunk(action, args) =>
+    s"<thunk ${action.actionName} ${args.show}>"
 
 given showLazyVal[V](using sv: Show[V]): Show[LazyVal[V]] =
   case LVVal(v)  => v.show

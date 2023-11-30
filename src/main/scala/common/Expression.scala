@@ -10,7 +10,7 @@ enum Bind:
   case BLVal(x: String, e: Expr)
   case BDefIO(
       f: String,
-      params: List[Arg],
+      params: List[Arg.AVName],
       actions: List[IOAction],
       returns: Expr
   )

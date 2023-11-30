@@ -118,12 +118,22 @@ class ExprParser(val input: ParserInput) extends Parser {
 
   def SArg: Rule1[Arg] = rule {
     (Ident ~> (AVName(_)))
-      | ('(' ~ WL ~ "by-name" ~ SP ~ Ident ~ WL ~ ")" ~> (ANName(_)))
+      | ('(' ~ WL ~ "by-name" ~ SP ~ Ident ~ WL ~ ')' ~> (ANName(_)))
   }
 
   def SArgList: Rule1[List[Arg]] = rule {
     '(' ~ WL ~ zeroOrMore(SArg ~ (&(')') | SP)) ~ ')' ~> ((args: Seq[Arg]) =>
       args.toList
+    )
+  }
+
+  def SAVName: Rule1[Arg] = rule {
+    Ident ~> (AVName(_))
+  }
+
+  def SAVList: Rule1[List[AVName]] = rule {
+    '(' ~ WL ~ zeroOrMore(SAVName ~ (&(')') | SP)) ~ ')' ~> ((args: Seq[Arg]) =>
+      args.toList.asInstanceOf[List[AVName]]
     )
   }
 
@@ -152,15 +162,19 @@ class ExprParser(val input: ParserInput) extends Parser {
   def SBindDefIO: Rule1[Bind] = rule {
     atomic(
       "defIO"
-    ) ~ SP ~ Ident ~ SP ~ SArgList ~ SP ~ SIOActionList ~ SP ~ SExpr ~> (
-      (f: String, params: List[Arg], actions: List[IOAction], returns: Expr) =>
-        BDefIO(f, params, actions, returns)
+    ) ~ SP ~ Ident ~ SP ~ SAVList ~ WL ~ SIOActionList ~ WL ~ SExpr ~> (
+      (
+          f: String,
+          params: List[AVName],
+          actions: List[IOAction],
+          returns: Expr
+      ) => BDefIO(f, params, actions, returns)
     )
   }
 
   def SIOActionList: Rule1[List[IOAction]] = rule {
-    zeroOrMore('(' ~ WL ~ SIOAction ~ WL ~ ')') ~> ((args: Seq[IOAction]) =>
-      args.toList
+    zeroOrMore('(' ~ WL ~ SIOAction ~ WL ~ ')' ~ WL) ~> (
+      (args: Seq[IOAction]) => args.toList
     )
   }
 

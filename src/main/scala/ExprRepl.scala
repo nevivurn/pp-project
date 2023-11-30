@@ -3,7 +3,6 @@ package pp202302.project
 import org.parboiled2.{ErrorFormatter, ParseError}
 import pp202302.project.common.{_, given}
 import pp202302.project.impl.given
-import pp202302.project.impl.ExprInterpreter.given
 
 import scala.annotation.tailrec
 import scala.util.{Failure, Success}
@@ -13,7 +12,7 @@ object ExprRepl:
 
   @tailrec
   def run(): Unit =
-    println("Input your program [Enter for exit]:")
+    print("Input your program [Enter for exit]:\n > ")
 
     val input = scala.io.StdIn.readLine()
     if input == "" then
@@ -27,7 +26,9 @@ object ExprRepl:
       case Success(e) =>
         e.interpret(ioChannel, ioChannel) match
           case Success(v) => s"Result: ${v.show}"
-          case Failure(e) => s"Error: ${e.getMessage}"
+          case Failure(e) =>
+            e.printStackTrace()
+            s"Error: ${e.getMessage}"
       case Failure(e: ParseError) =>
         s"Parse Error: ${parser.formatError(e, new ErrorFormatter(showTraces = true))}"
       case Failure(e) =>
