@@ -98,5 +98,20 @@ object Elementary:
     def nextState(
         currState: CellState,
         neighborsStates: Iterable[CellState]
-    ): CellState = ???
+    ): CellState =
+      def isOn(pos: Int): Int =
+        if ((ruleCode & (1<<pos)) == (1<<pos)) { 1 } else { 0 }
+
+      val neighbors = neighborsStates.map(_.name.toInt).toList
+      neighbors match {
+        case 0 :: 0 :: 0 :: Nil => cellStates(isOn(0))
+        case 0 :: 0 :: 1 :: Nil => cellStates(isOn(1))
+        case 0 :: 1 :: 0 :: Nil => cellStates(isOn(2))
+        case 0 :: 1 :: 1 :: Nil => cellStates(isOn(3))
+        case 1 :: 0 :: 0 :: Nil => cellStates(isOn(4))
+        case 1 :: 0 :: 1 :: Nil => cellStates(isOn(5))
+        case 1 :: 1 :: 0 :: Nil => cellStates(isOn(6))
+        case 1 :: 1 :: 1 :: Nil => cellStates(isOn(7))
+        case _                  => cellStates(0)
+      }
   }

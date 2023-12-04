@@ -15,9 +15,28 @@ class GameOfLife(val map: CellMap) extends CellAutomata(GameOfLife.rule):
 
   def createNew(map: CellMap): GameOfLife = new GameOfLife(map)
 
-  def setStateAt(x: Int, y: Int, state: CellState): GameOfLife = ???
+  def setStateAt(x: Int, y: Int, state: CellState): GameOfLife =
+    val newGrids = map.grids.updated(x, map.grids(x).updated(y, state))
+    createNew(CellMap(map.size, newGrids))
 
-  def neighborsAt(x: Int, y: Int): Iterable[CellState] = ???
+  def neighborsAt(x: Int, y: Int): Iterable[CellState] =
+    val nx = x > 0
+    val px = x < map.size(0)-1
+    val ny = y > 0
+    val py = y < map.size(1)-1
+
+    val a = if (nx && ny) map.grids(x-1)(y-1) else rule.defaultState
+    val b = if (nx) map.grids(x-1)(y) else rule.defaultState
+    val c = if (nx && py) map.grids(x-1)(y+1) else rule.defaultState
+
+    val d = if (ny) map.grids(x)(y-1) else rule.defaultState
+    val e = if (py) map.grids(x)(y+1) else rule.defaultState
+
+    val f = if (px && ny) map.grids(x+1)(y-1) else rule.defaultState
+    val g = if (px) map.grids(x+1)(y) else rule.defaultState
+    val h = if (px && py) map.grids(x+1)(y+1) else rule.defaultState
+
+    a :: b :: c :: d :: e :: f :: g :: h :: Nil
 
 object GameOfLife:
   def initMap(height: Int, width: Int): CellMap =
@@ -35,4 +54,13 @@ object GameOfLife:
     def nextState(
         currState: CellState,
         neighborsStates: Iterable[CellState]
-    ): CellState = ???
+    ): CellState =
+      val count = neighborsStates.count(_ == cellStates(1))
+      if (currState == cellStates(1) && count < 2)
+        cellStates(0)
+      else if (currState == cellStates(1) && count > 3)
+        cellStates(0)
+      else if (currState == cellStates(0) && count == 3)
+        cellStates(1)
+      else
+        currState
