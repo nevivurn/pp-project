@@ -16,4 +16,13 @@ object GameOfLife extends CellRule[Grid, (Int, Int), CellState]:
   def nextState(
       currState: CellState,
       neighborsStates: Grid[CellState]
-  ): CellState = ???
+  ): CellState =
+    val count = neighborsStates.cells.flatten.count(_ == cellStates(1))
+    if (currState == cellStates(1) && count < 2)
+      cellStates(0)
+    else if (currState == cellStates(1) && count > 3)
+      cellStates(0)
+    else if (currState == cellStates(0) && count == 3)
+      cellStates(1)
+    else
+      currState
