@@ -497,5 +497,6 @@ class TestSuite extends munit.FunSuite {
   test("calculator") {
     runCheckIO(calculator, "1+2\nexit\n", "3\n")
     runCheckIO(calculator, "10+2\n2+3*5\nexit\n", "12\n17\n")
+    runCheckIO(calculator, "10+2\n.\n2+3*5\nexit\n", "12\nparse error\n17\n")
   }
 }
